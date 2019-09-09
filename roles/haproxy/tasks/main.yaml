@@ -1,0 +1,49 @@
+---
+
+# - name: Update apt-cache
+#   apt: update_cache=yes
+
+- name: Download and install dependencies
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+    - build-essential
+    - libssl-dev
+
+- name: Download and install haproxy
+  apt: name=haproxy state=present
+
+- name: Extract files/keepalived-2.0.18.tar.gz into remote /usr/local/src/
+  unarchive:
+    src: files/keepalived-2.0.18.tar.gz
+    dest: /usr/local/src/
+
+- name: Running ./configure for keepalived
+  command: '"{{ item }}" chdir=/usr/local/src/keepalived-2.0.18'
+  with_items:
+    - ./configure
+
+- name: Run 'install' on keepalived
+  make:
+    chdir: /usr/local/src/keepalived-2.0.18
+    target: install
+
+- name: Download and install haproxyctl
+  apt: name=haproxyctl state=present
+
+- name: Download and install hatop
+  apt: name=hatop state=present
+
+- name: Ensure the service starts automatically each time the server powers on
+  lineinfile:
+    path: /etc/default/haproxy
+    regexp: '^ENABLED='
+    line: ENABLED=1
+
+- name: Configure the haproxy cnf file with hosts
+  template: src=haproxy.cfg.j2 dest=/etc/haproxy/haproxy.cfg
+  notify: restart haproxy
+
+- name: Start the haproxy service
+  service: name=haproxy state=started enabled=yes
