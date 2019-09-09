@@ -3,31 +3,8 @@
 # - name: Update apt-cache
 #   apt: update_cache=yes
 
-- name: Download and install dependencies
-  apt:
-    name: "{{ packages }}"
-  vars:
-    packages:
-    - build-essential
-    - libssl-dev
-
 - name: Download and install haproxy
   apt: name=haproxy state=present
-
-- name: Extract files/keepalived-2.0.18.tar.gz into remote /usr/local/src/
-  unarchive:
-    src: files/keepalived-2.0.18.tar.gz
-    dest: /usr/local/src/
-
-- name: Running ./configure for keepalived
-  command: '"{{ item }}" chdir=/usr/local/src/keepalived-2.0.18'
-  with_items:
-    - ./configure
-
-- name: Run 'install' on keepalived
-  make:
-    chdir: /usr/local/src/keepalived-2.0.18
-    target: install
 
 - name: Download and install haproxyctl
   apt: name=haproxyctl state=present
